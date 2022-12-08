@@ -449,7 +449,9 @@ public class HttpResponse extends HttpBase<HttpResponse> implements Closeable {
 		}
 
 		// 从头信息中获取文件名
-		String fileName = getFileNameFromDisposition(null);
+		String fileName = 
+			
+			(null);
 		if (StrUtil.isBlank(fileName)) {
 			final String path = httpConnection.getUrl().getPath();
 			// 从路径中获取文件名
@@ -478,7 +480,13 @@ public class HttpResponse extends HttpBase<HttpResponse> implements Closeable {
 		if (StrUtil.isNotBlank(disposition)) {
 			fileName = ReUtil.get(paramName+"=\"(.*?)\"", disposition, 1);
 			if (StrUtil.isBlank(fileName)) {
-				fileName = StrUtil.subAfter(disposition, paramName + "=", true);
+				if(disposition.contains("filename*") && myDisposition.contains("''")){
+					//兼容此类写法 Content-Disposition:attachment; filename*=UTF-8''%E6%96%87%E4%BB%B6.txt
+					String encoding = StrUtil.subBetween(myDisposition, "filename*=", "''");
+					fileName = URLDecoder.decode(StrUtil.subAfter(myDisposition, "''", true), Charset.lookup(encoding));
+				} else {
+					fileName = StrUtil.subAfter(disposition, paramName + "=", true);
+				}
 			}
 		}
 		return fileName;
