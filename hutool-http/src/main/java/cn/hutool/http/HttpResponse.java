@@ -7,6 +7,7 @@ import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.StreamProgress;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.net.URLDecoder;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
@@ -478,7 +479,12 @@ public class HttpResponse extends HttpBase<HttpResponse> implements Closeable {
 		if (StrUtil.isNotBlank(disposition)) {
 			fileName = ReUtil.get(paramName+"=\"(.*?)\"", disposition, 1);
 			if (StrUtil.isBlank(fileName)) {
-				fileName = StrUtil.subAfter(disposition, paramName + "=", true);
+				if(disposition.contains("filename*") && disposition.contains("''")){
+					String encoding = StrUtil.subBetween(disposition, "filename*=", "''");
+					fileName = URLDecoder.decode(StrUtil.subAfter(disposition, "''", true), Charset.lookup(encoding));
+				} else {
+					fileName = StrUtil.subAfter(disposition, paramName + "=", true);
+				}
 			}
 		}
 		return fileName;
